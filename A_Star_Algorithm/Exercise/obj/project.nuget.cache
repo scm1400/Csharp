@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "6gCttDCcm8TirYLOLL0KPsw5DjBCuGVAVwZj3UMqpDrSP/3v+17Daq7byLiH7nApkTfO9CZgo+8QATxfxm3ESw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\scm14\\Downloads\\AStar 코드\\Exercise\\Exercise.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\scm14\\.nuget\\packages\\microsoft.netcore.app.ref\\3.1.0\\microsoft.netcore.app.ref.3.1.0.nupkg.sha512",
+    "C:\\Users\\scm14\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\3.1.0\\microsoft.windowsdesktop.app.ref.3.1.0.nupkg.sha512",
+    "C:\\Users\\scm14\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.10\\microsoft.aspnetcore.app.ref.3.1.10.nupkg.sha512",
+    "C:\\Users\\scm14\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.32\\microsoft.netcore.app.host.win-x64.3.1.32.nupkg.sha512"
+  ],
+  "logs": []
+}
