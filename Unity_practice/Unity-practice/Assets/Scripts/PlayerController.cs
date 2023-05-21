@@ -11,7 +11,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Managers mg = Managers.Instance;
+        Managers.Input.KeyAction -= OnKeyboard;
+        Managers.Input.KeyAction += OnKeyboard;
     }
 
     // GameObject (Player)
@@ -20,6 +21,11 @@ public class PlayerController : MonoBehaviour
 
     float _yAngle = 0.0f;
     void Update()
+    {
+
+    }
+
+    void OnKeyboard()
     {
         //InverseTransformDirection 반대
 
@@ -34,17 +40,19 @@ public class PlayerController : MonoBehaviour
         //transform.rotation = Quaternion.Euler(new Vector3(0.0f, _yAngle, 0.0f));
 
         Quaternion qt = transform.rotation;
-       
+
         if (Input.GetKey(KeyCode.W))
         {
             //transform.rotation = Quaternion.LookRotation(Vector3.forward);
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.2f);
             transform.position += Vector3.forward * Time.deltaTime * _speed;
             //transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+
+            //로컬 좌표 기준으로 이동
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
         }
 
-        if(Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.S))
         {
             //transform.rotation = Quaternion.LookRotation(Vector3.back);
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.2f);
