@@ -1,11 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    float _speed = 10.0f;
+    [SerializeField] float _speed = 10.0f;
+
+    private bool _moveToDest = false;
+    private Vector3 _destPos;
 
 
     // Start is called before the first frame update
@@ -13,25 +16,45 @@ public class PlayerController : MonoBehaviour
     {
         Managers.Input.KeyAction -= OnKeyboard;
         Managers.Input.KeyAction += OnKeyboard;
+        Managers.Input.MouseAction -= OnMouseClicked;
+        Managers.Input.MouseAction += OnMouseClicked;
     }
 
     // GameObject (Player)
-        // Transform
-        // PlayerController
+    // Transform
+    // PlayerController
 
     float _yAngle = 0.0f;
+
     void Update()
     {
+        if (_moveToDest)
+        {
+            Vector3 dir = _destPos - transform.position;
+            if (dir.magnitude < 0.0001f)
+            {
+                _moveToDest = false;
+            }
+            else
+            {
+                float moveDist = Math.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
+                
+                transform.position += dir.normalized * moveDist;
 
+                transform.rotation =
+                    Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
+                transform.LookAt(_destPos);
+            }
+        }
     }
 
     void OnKeyboard()
     {
-        //InverseTransformDirection ¹Ý´ë
+        //InverseTransformDirection ï¿½Ý´ï¿½
 
         _yAngle += Time.deltaTime * 100.0f;
 
-        // Àý´ë È¸Àü°ª
+        // ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½
         //transform.eulerAngles = new Vector3(0.0f, _yAngle, 0.0f);
 
         // +-delta
@@ -48,7 +71,7 @@ public class PlayerController : MonoBehaviour
             transform.position += Vector3.forward * Time.deltaTime * _speed;
             //transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
 
-            //·ÎÄÃ ÁÂÇ¥ ±âÁØÀ¸·Î ÀÌµ¿
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
         }
 
@@ -77,5 +100,23 @@ public class PlayerController : MonoBehaviour
             //transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
         }
         //transform
+
+        _moveToDest = false;
+    }
+
+    void OnMouseClicked(Define.MouseEvent evt)
+    {
+        if (evt != Define.MouseEvent.Click)
+            return;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
+
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 100.0f, LayerMask.GetMask("Wall")))
+        {
+            _destPos = hit.point;
+            _moveToDest = true;
+            // Debug.Log($"Raycast Camera @ {hit.collider.gameObject.name}");
+        }
     }
 }
