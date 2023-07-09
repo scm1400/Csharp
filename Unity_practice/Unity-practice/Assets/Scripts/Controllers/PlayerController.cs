@@ -10,11 +10,64 @@ public class PlayerController : MonoBehaviour
     private bool _moveToDest = false;
     private Vector3 _destPos;
     private Animator anim;
+    private Camera mainCamera;
+
+
+    public enum PlayerState
+    {
+        Die,
+        Idle,
+        Moving
+    }
+
+    private PlayerState _state = PlayerState.Idle;
+
+    void UpdateDie()
+    {
+    }
+
+    void UpdateMoving()
+    {
+        Vector3 dir = _destPos - transform.position;
+        if (dir.magnitude < 0.0001f)
+        {
+            _state = PlayerState.Idle;
+        }
+        else
+        {
+            float moveDist = Math.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
+
+            transform.position += dir.normalized * moveDist;
+
+            transform.rotation =
+                Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
+            transform.LookAt(_destPos);
+        }
+
+        // 애니메이션 (코드로 하는 경우)
+        // wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
+        // anim.SetFloat("wait_run_ratio", wait_run_ratio);
+        // anim.Play("WAIT_RUN");
+        
+        //현재 게임 상태에 대한 정보를 Animator로 넘겨준다
+        anim.SetFloat("speed", _speed);
+    }
+
+    void UpdateIdle()
+    {
+        // 애니메이션 (코드로 하는 경우)
+        // wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
+        // anim.SetFloat("wait_run_ratio", wait_run_ratio);
+        // anim.Play("WAIT_RUN");
+        
+        anim.SetFloat("speed", 0);
+    }
 
 
     // Start is called before the first frame update
     void Start()
     {
+        mainCamera = Camera.main;
         anim = GetComponent<Animator>();
         Managers.Input.KeyAction -= OnKeyboard;
         Managers.Input.KeyAction += OnKeyboard;
@@ -30,43 +83,26 @@ public class PlayerController : MonoBehaviour
 
 
     private float wait_run_ratio = 0;
+
     void Update()
     {
-        if (_moveToDest)
+        switch (_state)
         {
-            Vector3 dir = _destPos - transform.position;
-            if (dir.magnitude < 0.0001f)
-            {
-                _moveToDest = false;
-            }
-            else
-            {
-                float moveDist = Math.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
-                
-                transform.position += dir.normalized * moveDist;
-
-                transform.rotation =
-                    Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
-                transform.LookAt(_destPos);
-            }
-        }
-
-        if (_moveToDest)
-        {
-            wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
-            anim.SetFloat("wait_run_ratio", wait_run_ratio);
-            anim.Play("WAIT_RUN");
-        }
-        else
-        {
-            wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
-            anim.SetFloat("wait_run_ratio", wait_run_ratio);
-            anim.Play("WAIT_RUN");
+            case PlayerState.Die:
+                UpdateDie();
+                break;
+            case PlayerState.Idle:
+                UpdateIdle();
+                break;
+            case PlayerState.Moving:
+                UpdateMoving();
+                break;
         }
     }
 
     void OnKeyboard()
     {
+        Vector3 direction = Vector3.zero;
         //InverseTransformDirection �ݴ�
 
         _yAngle += Time.deltaTime * 100.0f;
@@ -79,42 +115,34 @@ public class PlayerController : MonoBehaviour
 
         //transform.rotation = Quaternion.Euler(new Vector3(0.0f, _yAngle, 0.0f));
 
-        Quaternion qt = transform.rotation;
+        if (_state == PlayerState.Die) return;
 
         if (Input.GetKey(KeyCode.W))
         {
-            //transform.rotation = Quaternion.LookRotation(Vector3.forward);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.2f);
-            transform.position += Vector3.forward * Time.deltaTime * _speed;
-            //transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
-
-            //���� ��ǥ �������� �̵�
-            //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
+            direction += Vector3.forward;
         }
-
         if (Input.GetKey(KeyCode.S))
         {
-            //transform.rotation = Quaternion.LookRotation(Vector3.back);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.2f);
-
-            transform.position += Vector3.back * Time.deltaTime * _speed;
-            //transform.position -= transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+            direction += Vector3.back;
         }
-
         if (Input.GetKey(KeyCode.A))
         {
-            //transform.rotation = Quaternion.LookRotation(Vector3.left);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.2f);
-            transform.position += Vector3.left * Time.deltaTime * _speed;
-            //transform.position -= transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+            direction += Vector3.left;
         }
-
         if (Input.GetKey(KeyCode.D))
         {
-            //transform.rotation = Quaternion.LookRotation(Vector3.right);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.2f);
-            transform.position += Vector3.right * Time.deltaTime * _speed;
-            //transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+            direction += Vector3.right;
+        }
+
+        if (direction != Vector3.zero)
+        {
+            direction.Normalize();
+            _destPos = transform.position + direction;
+            _state = PlayerState.Moving;
+        }
+        else
+        {
+            _state = PlayerState.Idle;
         }
         //transform
 
@@ -123,17 +151,18 @@ public class PlayerController : MonoBehaviour
 
     void OnMouseClicked(Define.MouseEvent evt)
     {
+        if (_state == PlayerState.Die) return;
         // if (evt != Define.MouseEvent.Click)
         //     return;
-        
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
 
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 100.0f, LayerMask.GetMask("Wall")))
+        var ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(mainCamera.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
+        
+        if (Physics.Raycast(ray, out RaycastHit hit, 100.0f, LayerMask.GetMask("Wall")))
         {
             _destPos = hit.point;
-            _moveToDest = true;
+            _state = PlayerState.Moving;
+            // _moveToDest = true;
             // Debug.Log($"Raycast Camera @ {hit.collider.gameObject.name}");
         }
     }
