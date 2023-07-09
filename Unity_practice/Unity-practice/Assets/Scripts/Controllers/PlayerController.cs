@@ -9,11 +9,13 @@ public class PlayerController : MonoBehaviour
 
     private bool _moveToDest = false;
     private Vector3 _destPos;
+    private Animator anim;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        anim = GetComponent<Animator>();
         Managers.Input.KeyAction -= OnKeyboard;
         Managers.Input.KeyAction += OnKeyboard;
         Managers.Input.MouseAction -= OnMouseClicked;
@@ -26,6 +28,8 @@ public class PlayerController : MonoBehaviour
 
     float _yAngle = 0.0f;
 
+
+    private float wait_run_ratio = 0;
     void Update()
     {
         if (_moveToDest)
@@ -45,6 +49,19 @@ public class PlayerController : MonoBehaviour
                     Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
                 transform.LookAt(_destPos);
             }
+        }
+
+        if (_moveToDest)
+        {
+            wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
+            anim.SetFloat("wait_run_ratio", wait_run_ratio);
+            anim.Play("WAIT_RUN");
+        }
+        else
+        {
+            wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
+            anim.SetFloat("wait_run_ratio", wait_run_ratio);
+            anim.Play("WAIT_RUN");
         }
     }
 
@@ -106,8 +123,9 @@ public class PlayerController : MonoBehaviour
 
     void OnMouseClicked(Define.MouseEvent evt)
     {
-        if (evt != Define.MouseEvent.Click)
-            return;
+        // if (evt != Define.MouseEvent.Click)
+        //     return;
+        
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
 
