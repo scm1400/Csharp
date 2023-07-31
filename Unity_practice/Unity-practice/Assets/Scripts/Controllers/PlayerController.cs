@@ -166,4 +166,9 @@ public class PlayerController : MonoBehaviour
             // Debug.Log($"Raycast Camera @ {hit.collider.gameObject.name}");
         }
     }
+
+    void OnRunEvent()
+    {
+        Debug.Log("뚜벅 뚜벅~~");
+    }
 }
